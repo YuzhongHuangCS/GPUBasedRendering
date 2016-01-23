@@ -33,6 +33,7 @@ using namespace std;
 int windowWidth = 800;
 int windowHeight = 600;
 float lightColor[3] = { 0.95, 0.95, 0.95 };  /* White */
+float lightPos[] = { -1.0, 0.0, 1.0, 0.0 };
 float lightAngle = -0.4;   /* Angle light rotates around scene. */
 float time = 0.0;  /* Timing of bulge. */
 GLuint ivoryProgram, goochProgram;
@@ -158,5 +159,24 @@ void onReshape(int width, int height) {
 
 }
 void onKeyboard(unsigned char key, int x, int y) {
-
+	switch (key) {
+	case 27:
+		exit(EXIT_SUCCESS);
+		break;
+	case 'i':
+		glDisable(GL_LIGHTING);
+		glUseProgram(ivoryProgram);
+		break;
+	case 'g':
+		glDisable(GL_LIGHTING);
+		glUseProgram(goochProgram);
+		break;
+	case 'n':
+		glUseProgram(0);
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
+		glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
+		break;
+	}
 }

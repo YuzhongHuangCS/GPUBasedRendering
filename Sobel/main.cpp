@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
 
 		// update fps
 		if (++count >= 60) {
-			snprintf(fpsTitle, 32, "Ocean - FPS: %.2f", count / (nowTime - lastTime));
+			snprintf(fpsTitle, 32, "Sobel - FPS: %.2f", count / (nowTime - lastTime));
 			glfwSetWindowTitle(window, fpsTitle);
 			lastTime = nowTime;
 			count = 0;
