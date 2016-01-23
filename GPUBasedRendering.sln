@@ -5,6 +5,8 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Shading", "Shading\Shading.vcxproj", "{D1793487-2141-4F6F-8BBD-A4B6FF6D4B25}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Outline", "Outline\Outline.vcxproj", "{524BCB88-6124-4373-BA2B-F72DE86B89BC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +23,14 @@ Global
 		{D1793487-2141-4F6F-8BBD-A4B6FF6D4B25}.Release|x64.Build.0 = Release|x64
 		{D1793487-2141-4F6F-8BBD-A4B6FF6D4B25}.Release|x86.ActiveCfg = Release|Win32
 		{D1793487-2141-4F6F-8BBD-A4B6FF6D4B25}.Release|x86.Build.0 = Release|Win32
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Debug|x64.ActiveCfg = Debug|x64
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Debug|x64.Build.0 = Debug|x64
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Debug|x86.ActiveCfg = Debug|Win32
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Debug|x86.Build.0 = Debug|Win32
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Release|x64.ActiveCfg = Release|x64
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Release|x64.Build.0 = Release|x64
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Release|x86.ActiveCfg = Release|Win32
+		{524BCB88-6124-4373-BA2B-F72DE86B89BC}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
