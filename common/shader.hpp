@@ -38,6 +38,14 @@ GLuint glBuildProgram(char** shaderCodeArray, GLenum* shaderTypeArray, GLuint le
 	GLuint program = glCreateProgram();
 	for (GLuint i = 0; i < length; i++) {
 		glAttachShader(program, glBuildShader(shaderCodeArray[i], shaderTypeArray[i]));
+		if (shaderTypeArray[i] == GL_GEOMETRY_SHADER) {
+			glProgramParameteriEXT(program, GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
+			glProgramParameteriEXT(program, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLES);
+
+			int temp;
+			glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &temp);
+			glProgramParameteriEXT(program, GL_GEOMETRY_VERTICES_OUT_EXT, temp);
+		}
 	}
 	glLinkProgram(program);
 
