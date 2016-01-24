@@ -1,10 +1,13 @@
-#pragma once
-
 /*
 * textfile.hpp
 *
 * simple reading and writing for text files
 */
+
+#pragma once
+
+#ifndef TEXTFILE_H
+#define TEXTFILE_H
 
 #include <iostream>
 
@@ -39,3 +42,5 @@ int textFileWrite(char* path, char* data) {
 
 	return status;
 }
+
+#endif // TEXTFILE_H

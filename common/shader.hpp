@@ -1,10 +1,13 @@
-#pragma once
-
 /*
 * shader.cpp
 *
 * shader and program managment utility
 */
+
+#pragma once
+
+#ifndef SHADER_H
+#define SHADER_H
 
 #include <iostream>
 #include <GL/glew.h>
@@ -60,3 +63,5 @@ GLuint glBuildProgram(char** shaderCodeArray, GLenum* shaderTypeArray, GLuint le
 
 	return program;
 }
+
+#endif // SHADER_H

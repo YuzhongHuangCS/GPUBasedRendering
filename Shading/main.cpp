@@ -19,8 +19,6 @@
 
 #ifdef _WIN32
 #include <GL/wglew.h>
-#pragma comment(lib, "Opengl32.lib")
-#pragma comment(lib, "glu32.lib")
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "freeglut.lib")
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
@@ -33,7 +31,7 @@ using namespace std;
 int windowWidth = 800;
 int windowHeight = 600;
 float lightColor[3] = { 0.95, 0.95, 0.95 };  /* White */
-float lightPos[] = { -1.0, 0.0, 1.0, 0.0 };
+float lightPos[4] = { -1.0, 0.0, 1.0, 0.0 };
 float lightAngle = -0.4;   /* Angle light rotates around scene. */
 float time = 0.0;  /* Timing of bulge. */
 GLuint ivoryProgram, goochProgram;
@@ -62,17 +60,17 @@ int main(int argc, char **argv) {
 	glXSwapIntervalEXT(-1);
 #endif
 
+	initIvory();
+	initGooch();
+
 	glutDisplayFunc(onDisplay);
 	glutIdleFunc(onIdle);
 	glutReshapeFunc(onReshape);
 	glutKeyboardFunc(onKeyboard);
 
-	initIvory();
-	initGooch();
-	glUseProgram(goochProgram);
-
-	// setup status used in mainloop
 	glEnable(GL_DEPTH_TEST);
+	glUseProgram(ivoryProgram);
+
 	glutMainLoop();
 
 	return EXIT_SUCCESS;
@@ -106,6 +104,7 @@ void onDisplay() {
 		0.0f, 1.0f, 0.0f);
 	glRotatef(time * 5, 1, 1, 1);
 	glutSolidTeapot(3);
+
 	glutSwapBuffers();
 }
 
@@ -160,9 +159,6 @@ void onReshape(int width, int height) {
 }
 void onKeyboard(unsigned char key, int x, int y) {
 	switch (key) {
-	case 27:
-		exit(EXIT_SUCCESS);
-		break;
 	case 'i':
 		glDisable(GL_LIGHTING);
 		glUseProgram(ivoryProgram);

@@ -43,11 +43,5 @@
     <None Include="shader\ivory.vert">
       <Filter>shader</Filter>
     </None>
-    <None Include="shader\minimal.frag">
-      <Filter>shader</Filter>
-    </None>
-    <None Include="shader\minimal.vert">
-      <Filter>shader</Filter>
-    </None>
   </ItemGroup>
 </Project>
