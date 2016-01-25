@@ -38,32 +38,37 @@ GLint lastTime = 0;
 GLfloat lightAmbient[4] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat lightDiffuse[4] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat lightSpecular[4] = { 1.0, 1.0, 1.0, 1.0 };
-GLfloat lightPosition[4] = { -3.0, 4.0, -5.0, 1.0 };
+GLfloat lightPosition[4] = { -3.0, 4.0, 5.0, 1.0 };
 GLfloat materialAmbient[4] = { 0.2, 0.2, 0.2, 1.0 };
 GLfloat materialDiffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
 GLfloat materialSpecular[4] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat materialEmission[4] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat materialShiness = 128;
-GLdouble cameraEye[3] = { 3.0, 4.0, -5.0 };
+GLdouble cameraEye[3] = { 3.0, 4.0, 5.0 };
 GLdouble cameraCenter[3] = { 0.0, 0.0, 0.0 };
 GLdouble cameraUp[3] = { 0.0, 1.0, 0.0 };
-GLfloat rotateSpeed = 0.01;
+GLfloat rotateSpeed = 0.1;
 GLfloat rotateVector[3] = { -1.0, 1.0, 1.0 };
 GLuint ivoryProgram, goochProgram;
 GLuint displayList[9];
+GLuint helperList[2];
 int displayIndex = 0;
+int programIndex = 0;
+bool spinning = true;
 
 void initIvory();
 void initGooch();
-void initDisplayList();
+void initDisplay();
+void compileDisplay();
 void onDisplay();
 void onIdle();
 void onReshape(int width, int height);
 void onKeyboard(unsigned char key, int x, int y);
+void onSpecial(int key, int x, int y);
 
 int main(int argc, char **argv) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_MULTISAMPLE);
 	glutInitWindowSize(windowWidth, windowHeight);
 	glutCreateWindow(windowTitle);
 	glCheckError();
@@ -78,11 +83,13 @@ int main(int argc, char **argv) {
 	glXSwapIntervalEXT(-1);
 #endif
 
-	initDisplayList();
 	initIvory();
 	initGooch();
+	initDisplay();
+	compileDisplay();
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
@@ -99,6 +106,7 @@ int main(int argc, char **argv) {
 	glutIdleFunc(onIdle);
 	glutReshapeFunc(onReshape);
 	glutKeyboardFunc(onKeyboard);
+	glutSpecialFunc(onSpecial);
 
 	glutMainLoop();
 
@@ -125,58 +133,96 @@ void initGooch() {
 	glCheckError();
 }
 
-void initDisplayList() {
-	int base = glGenLists(9);
+void initDisplay() {
+	glLoadIdentity();
+	gluLookAt(cameraEye[0], cameraEye[1], cameraEye[2], cameraCenter[0], cameraCenter[1], cameraCenter[2], cameraUp[0], cameraUp[1], cameraUp[2]);
+}
 
+void compileDisplay() {
+	int base = glGenLists(9);
 	for (int i = 0; i < 9; i++) {
 		glNewList(base + i, GL_COMPILE);
 		switch (i) {
-			case 0:
-				glutSolidCube(2);
-				break;
-			case 1:
-				glutSolidSphere(2, 24, 30);
-				break;
-			case 2:
-				glutSolidCone(2, 4, 24, 30);
-				break;
-			case 3:
-				glutSolidTorus(1, 2, 24, 30);
-				break;
-			case 4:
-				glutSolidDodecahedron();
-				break;
-			case 5:
-				glutSolidOctahedron();
-				break;
-			case 6:
-				glutSolidTetrahedron();
-				break;
-			case 7:
-				glutSolidIcosahedron();
-				break;
-			case 8:
-				glutSolidTeapot(2);
-				break;
+		case 0:
+			glutSolidCube(2);
+			break;
+		case 1:
+			glutSolidSphere(2, 24, 30);
+			break;
+		case 2:
+			glutSolidCone(2, 4, 24, 30);
+			break;
+		case 3:
+			glutSolidTorus(1, 2, 24, 30);
+			break;
+		case 4:
+			glutSolidDodecahedron();
+			break;
+		case 5:
+			glutSolidOctahedron();
+			break;
+		case 6:
+			glutSolidTetrahedron();
+			break;
+		case 7:
+			glutSolidIcosahedron();
+			break;
+		case 8:
+			glutSolidTeapot(2);
+			break;
 		}
 		glEndList();
 		displayList[i] = base + i;
+	}
+
+	base = glGenLists(2);
+	for (int i = 0; i < 2; i++) {
+		glNewList(base + i, GL_COMPILE);
+		switch (i) {
+			case 0:
+				glBegin(GL_LINES);
+				glColor3f(1.0, 0.0, 0.0);
+				glVertex3f(0.0, 0.0, 0.0);
+				glVertex3f(1000.0, 0.0, 0.0);
+				glColor3f(0.0, 1.0, 0.0);
+				glVertex3f(0.0, 0.0, 0.0);
+				glVertex3f(0.0, 1000.0, 0.0);
+				glColor3f(0.0, 0.0, 1.0);
+				glVertex3f(0.0, 0.0, 0.0);
+				glVertex3f(0.0, 0.0, 1000.0);
+				glColor3f(1.0, 1.0, 1.0);
+				glEnd();
+				break;
+			case 1:
+				glutSolidSphere(0.1, 24, 30);
+				break;
+		}
+		glEndList();
+		helperList[i] = base + i;
 	}
 }
 
 void onDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
 
-	nowTime = glutGet(GLUT_ELAPSED_TIME);
-	gluLookAt(cameraEye[0], cameraEye[1], cameraEye[2], cameraCenter[0], cameraCenter[1], cameraCenter[2], cameraUp[0], cameraUp[1], cameraUp[2]);
-	glRotatef(nowTime * rotateSpeed, rotateVector[0], rotateVector[1], rotateVector[2]);
+	if (spinning) glRotatef(rotateSpeed, rotateVector[0], rotateVector[1], rotateVector[2]);
 
+	glUseProgram(programIndex);
 	glCallList(displayList[displayIndex]);
+
+	glUseProgram(0);
+	glDisable(GL_LIGHTING);
+	glCallList(helperList[0]);
+	glPushMatrix();
+	glTranslatef(lightPosition[0], lightPosition[1], lightPosition[2]);
+	glCallList(helperList[1]);
+	glPopMatrix();
+	glEnable(GL_LIGHTING);
+
 	glutSwapBuffers();
 
-	frameCount++;
 	if (++frameCount >= 60) {
+		nowTime = glutGet(GLUT_ELAPSED_TIME);
 		snprintf(windowTitle, 32, "Shading - FPS: %.2f", frameCount / ((nowTime - lastTime) / 1000.0));
 		glutSetWindowTitle(windowTitle);
 		lastTime = nowTime;
@@ -201,15 +247,46 @@ void onKeyboard(unsigned char key, int x, int y) {
 		displayIndex = key - '1';
 	} else {
 		switch (key) {
+			case 's':
+				spinning = !spinning;
+				break;
+			case 'r':
+				initDisplay();
+				break;
 			case 'i':
-				glUseProgram(ivoryProgram);
+				programIndex = ivoryProgram;
 				break;
 			case 'g':
-				glUseProgram(goochProgram);
+				programIndex = goochProgram;
 				break;
 			case 'n':
-				glUseProgram(0);
+				programIndex = 0;
 				break;
 		}
 	}
+}
+
+void onSpecial(int key, int x, int y) {
+	switch (key) {
+		case GLUT_KEY_RIGHT:
+			lightPosition[0] += 0.1;
+			break;
+		case GLUT_KEY_LEFT:
+			lightPosition[0] -= 0.1;
+			break;
+		case GLUT_KEY_UP:
+			lightPosition[2] -= 0.1;
+			break;
+		case GLUT_KEY_DOWN:
+			lightPosition[2] += 0.1;
+			break;
+		case GLUT_KEY_PAGE_UP:
+			lightPosition[1] += 0.1;
+			break;
+		case GLUT_KEY_PAGE_DOWN:
+			lightPosition[1] -= 0.1;
+			break;
+	}
+
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 }
