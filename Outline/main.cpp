@@ -32,7 +32,7 @@ using namespace std;
 
 int windowWidth = 800;
 int windowHeight = 600;
-float lightColor[3] = { 0.95, 0.95, 0.95 };  /* White */
+float lightDiffuse[3] = { 0.95, 0.95, 0.95 };  /* White */
 float lightAngle = -0.4;   /* Angle light rotates around scene. */
 float time = 0.0;  /* Timing of bulge. */
 GLuint outlineProgram;

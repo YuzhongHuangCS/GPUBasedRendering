@@ -7,6 +7,7 @@
 *
 */
 
+#define _USE_MATH_DEFINES
 #ifdef  _WIN32
 #define _CRT_SECURE_NO_WARNINGS
 #endif //  _WIN32
@@ -28,12 +29,26 @@
 
 using namespace std;
 
-int windowWidth = 800;
-int windowHeight = 600;
-float lightColor[3] = { 0.95, 0.95, 0.95 };  /* White */
-float lightPos[4] = { -1.0, 0.0, 1.0, 0.0 };
-float lightAngle = -0.4;   /* Angle light rotates around scene. */
-float time = 0.0;  /* Timing of bulge. */
+GLint windowWidth = 800;
+GLint windowHeight = 600;
+GLchar windowTitle[32] = "Shading";
+GLint frameCount = 0;
+GLint nowTime = 0;
+GLint lastTime = 0;
+GLfloat lightAmbient[4] = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat lightDiffuse[4] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat lightSpecular[4] = { 1.0, 1.0, 1.0, 1.0 };
+GLfloat lightPosition[4] = { -3.0, 4.0, -5.0, 1.0 };
+GLfloat materialAmbient[4] = { 0.2, 0.2, 0.2, 1.0 };
+GLfloat materialDiffuse[4] = { 0.8, 0.8, 0.8, 1.0 };
+GLfloat materialSpecular[4] = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat materialEmission[4] = { 0.0, 0.0, 0.0, 1.0 };
+GLfloat materialShiness = 128;
+GLdouble cameraEye[3] = { 3.0, 4.0, -5.0 };
+GLdouble cameraCenter[3] = { 0.0, 0.0, 0.0 };
+GLdouble cameraUp[3] = { 0.0, 1.0, 0.0 };
+GLfloat rotateSpeed = 0.01;
+GLfloat rotateVector[3] = { -1.0, 1.0, 1.0 };
 GLuint ivoryProgram, goochProgram;
 
 void initIvory();
@@ -47,7 +62,7 @@ int main(int argc, char **argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitWindowSize(windowWidth, windowHeight);
-	glutCreateWindow("Shading - ivory and gooch shading demo");
+	glutCreateWindow(windowTitle);
 	glCheckError();
 
 	if (glewInit() != GLEW_OK) fprintf(stderr, "Failed to initialize GLEW");
@@ -63,13 +78,23 @@ int main(int argc, char **argv) {
 	initIvory();
 	initGooch();
 
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, materialAmbient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, materialDiffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, materialSpecular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, materialEmission);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, &materialShiness);
+
 	glutDisplayFunc(onDisplay);
 	glutIdleFunc(onIdle);
 	glutReshapeFunc(onReshape);
 	glutKeyboardFunc(onKeyboard);
-
-	glEnable(GL_DEPTH_TEST);
-	glUseProgram(ivoryProgram);
 
 	glutMainLoop();
 
@@ -99,80 +124,45 @@ void initGooch() {
 void onDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
-	gluLookAt(-3.0, -4.0, 9.0,
-		0.0, 0.0, -1.0,
-		0.0f, 1.0f, 0.0f);
-	glRotatef(time * 5, 1, 1, 1);
-	glutSolidTeapot(3);
 
+	nowTime = glutGet(GLUT_ELAPSED_TIME);
+	gluLookAt(cameraEye[0], cameraEye[1], cameraEye[2], cameraCenter[0], cameraCenter[1], cameraCenter[2], cameraUp[0], cameraUp[1], cameraUp[2]);
+	glRotatef(nowTime * rotateSpeed, rotateVector[0], rotateVector[1], rotateVector[2]);
+
+	glutSolidTeapot(2);
 	glutSwapBuffers();
+
+	frameCount++;
+	if (++frameCount >= 60) {
+		snprintf(windowTitle, 32, "Shading - FPS: %.2f", frameCount / ((nowTime - lastTime) / 1000.0));
+		glutSetWindowTitle(windowTitle);
+		lastTime = nowTime;
+		frameCount = 0;
+	}
 }
 
 void onIdle() {
-	static float lightVelocity = 0.008;
-	static float timeFlow = 0.01;
-	static const double myPi = 3.14159265358979323846;
-
-	/* Repeat rotating light around front 180 degrees. */
-	if (lightAngle > myPi / 2) {
-		lightAngle = myPi / 2;
-		lightVelocity = -lightVelocity;
-	} else if (lightAngle < -myPi / 2) {
-		lightAngle = -myPi / 2;
-		lightVelocity = -lightVelocity;
-	}
-	lightAngle += lightVelocity;  /* Add a small angle (in radians). */
-
-									/* Repeatedly advance and rewind time. */
-	if (time > 10) {
-		time = 10;
-		timeFlow = -timeFlow;
-	} else if (time < 0) {
-		time = 0;
-		timeFlow = -timeFlow;
-	}
-	time += timeFlow;  /* Add time delta. */
-
 	glutPostRedisplay();
 }
 
 void onReshape(int width, int height) {
-
-	// Prevent a divide by zero, when window is too short
-	// (you cant make a window of zero width).
-	if (height == 0)
-		height = 1;
-
-	float ratio = 1.0* width / height;
-
-	// Reset the coordinate system before modifying
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-
-	// Set the viewport to be the entire window
 	glViewport(0, 0, width, height);
-
-	// Set the correct perspective.
-	gluPerspective(45, ratio, 1, 1000);
+	gluPerspective(45, width / GLdouble(height), 0.1, 1000);
 	glMatrixMode(GL_MODELVIEW);
-
 }
+
 void onKeyboard(unsigned char key, int x, int y) {
 	switch (key) {
-	case 'i':
-		glDisable(GL_LIGHTING);
-		glUseProgram(ivoryProgram);
-		break;
-	case 'g':
-		glDisable(GL_LIGHTING);
-		glUseProgram(goochProgram);
-		break;
-	case 'n':
-		glUseProgram(0);
-		glEnable(GL_LIGHTING);
-		glEnable(GL_LIGHT0);
-		glLightfv(GL_LIGHT0, GL_DIFFUSE, lightColor);
-		glLightfv(GL_LIGHT0, GL_POSITION, lightPos);
-		break;
+		case 'i':
+			glUseProgram(ivoryProgram);
+			break;
+		case 'g':
+			glUseProgram(goochProgram);
+			break;
+		case 'n':
+			glUseProgram(0);
+			break;
 	}
 }

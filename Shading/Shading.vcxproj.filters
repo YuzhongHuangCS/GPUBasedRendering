@@ -13,7 +13,7 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="shader">
+    <Filter Include="Shader Files">
       <UniqueIdentifier>{9c7a24f6-9d04-40b2-9815-0f4435c931f8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -32,16 +32,16 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shader\gooch.frag">
-      <Filter>shader</Filter>
+      <Filter>Shader Files</Filter>
     </None>
     <None Include="shader\gooch.vert">
-      <Filter>shader</Filter>
+      <Filter>Shader Files</Filter>
     </None>
     <None Include="shader\ivory.frag">
-      <Filter>shader</Filter>
+      <Filter>Shader Files</Filter>
     </None>
     <None Include="shader\ivory.vert">
-      <Filter>shader</Filter>
+      <Filter>Shader Files</Filter>
     </None>
   </ItemGroup>
 </Project>
