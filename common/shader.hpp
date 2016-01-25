@@ -14,7 +14,7 @@
 #pragma comment(lib, "glew32.lib")
 
 #define glCheckError() _glCheckError(__FILE__, __LINE__)
-GLenum _glCheckError(char *file, int line) {
+GLenum _glCheckError(char* file, int line) {
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR) fprintf(stderr, "glError in file %s @ line %d: %s\n", file, line, gluErrorString(error));
 	return error;
@@ -31,7 +31,8 @@ GLuint glBuildShader(char* shaderCode, GLenum shaderType) {
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &result);
 		char* info = new char[result];
 		glGetShaderInfoLog(shader, result, NULL, info);
-		fprintf(stderr, "Build shader failed: %s", info);
+		fprintf(stderr, "Build shader failed: %s\n", info);
+		delete info;
 	}
 
 	return shader;
@@ -45,9 +46,9 @@ GLuint glBuildProgram(char** shaderCodeArray, GLenum* shaderTypeArray, GLuint le
 			glProgramParameteriEXT(program, GL_GEOMETRY_INPUT_TYPE_EXT, GL_TRIANGLES);
 			glProgramParameteriEXT(program, GL_GEOMETRY_OUTPUT_TYPE_EXT, GL_TRIANGLES);
 
-			int temp;
-			glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &temp);
-			glProgramParameteriEXT(program, GL_GEOMETRY_VERTICES_OUT_EXT, temp);
+			GLint maxOut;
+			glGetIntegerv(GL_MAX_GEOMETRY_OUTPUT_VERTICES_EXT, &maxOut);
+			glProgramParameteriEXT(program, GL_GEOMETRY_VERTICES_OUT_EXT, maxOut);
 		}
 	}
 	glLinkProgram(program);
@@ -58,7 +59,8 @@ GLuint glBuildProgram(char** shaderCodeArray, GLenum* shaderTypeArray, GLuint le
 		glGetProgramiv(program, GL_INFO_LOG_LENGTH, &result);
 		char* info = new char[result];
 		glGetProgramInfoLog(program, result, NULL, info);
-		fprintf(stderr, "Build program failed: %s", info);
+		fprintf(stderr, "Build program failed: %s\n", info);
+		delete info;
 	}
 
 	return program;

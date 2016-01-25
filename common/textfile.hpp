@@ -32,15 +32,15 @@ char* textFileRead(char *path) {
 
 int textFileWrite(char* path, char* data) {
 	FILE *fp = NULL;
-	int status = 0;
+	int count = 0;
 
 	fp = fopen(path, "w");
 	if (fp != NULL) {
-		if (fwrite(data, sizeof(char), strlen(data), fp) == strlen(data)) status = 1;
+		count = fwrite(data, sizeof(char), strlen(data), fp);
 		fclose(fp);
 	}
 
-	return status;
+	return count;
 }
 
 #endif // TEXTFILE_H

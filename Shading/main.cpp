@@ -50,9 +50,12 @@ GLdouble cameraUp[3] = { 0.0, 1.0, 0.0 };
 GLfloat rotateSpeed = 0.01;
 GLfloat rotateVector[3] = { -1.0, 1.0, 1.0 };
 GLuint ivoryProgram, goochProgram;
+GLuint displayList[9];
+int displayIndex = 0;
 
 void initIvory();
 void initGooch();
+void initDisplayList();
 void onDisplay();
 void onIdle();
 void onReshape(int width, int height);
@@ -75,6 +78,7 @@ int main(int argc, char **argv) {
 	glXSwapIntervalEXT(-1);
 #endif
 
+	initDisplayList();
 	initIvory();
 	initGooch();
 
@@ -121,6 +125,45 @@ void initGooch() {
 	glCheckError();
 }
 
+void initDisplayList() {
+	int base = glGenLists(9);
+
+	for (int i = 0; i < 9; i++) {
+		glNewList(base + i, GL_COMPILE);
+		switch (i) {
+			case 0:
+				glutSolidCube(2);
+				break;
+			case 1:
+				glutSolidSphere(2, 24, 30);
+				break;
+			case 2:
+				glutSolidCone(2, 4, 24, 30);
+				break;
+			case 3:
+				glutSolidTorus(1, 2, 24, 30);
+				break;
+			case 4:
+				glutSolidDodecahedron();
+				break;
+			case 5:
+				glutSolidOctahedron();
+				break;
+			case 6:
+				glutSolidTetrahedron();
+				break;
+			case 7:
+				glutSolidIcosahedron();
+				break;
+			case 8:
+				glutSolidTeapot(2);
+				break;
+		}
+		glEndList();
+		displayList[i] = base + i;
+	}
+}
+
 void onDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
@@ -129,7 +172,7 @@ void onDisplay() {
 	gluLookAt(cameraEye[0], cameraEye[1], cameraEye[2], cameraCenter[0], cameraCenter[1], cameraCenter[2], cameraUp[0], cameraUp[1], cameraUp[2]);
 	glRotatef(nowTime * rotateSpeed, rotateVector[0], rotateVector[1], rotateVector[2]);
 
-	glutSolidTeapot(2);
+	glCallList(displayList[displayIndex]);
 	glutSwapBuffers();
 
 	frameCount++;
@@ -154,15 +197,19 @@ void onReshape(int width, int height) {
 }
 
 void onKeyboard(unsigned char key, int x, int y) {
-	switch (key) {
-		case 'i':
-			glUseProgram(ivoryProgram);
-			break;
-		case 'g':
-			glUseProgram(goochProgram);
-			break;
-		case 'n':
-			glUseProgram(0);
-			break;
+	if (key >= '1' && key <= '9') {
+		displayIndex = key - '1';
+	} else {
+		switch (key) {
+			case 'i':
+				glUseProgram(ivoryProgram);
+				break;
+			case 'g':
+				glUseProgram(goochProgram);
+				break;
+			case 'n':
+				glUseProgram(0);
+				break;
+		}
 	}
 }
