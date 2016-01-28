@@ -305,7 +305,7 @@ void doMotion(int x, int y) {
 	switch (buttonId) {
 		case GLUT_LEFT_BUTTON:
 			vector *= rotateSpeed;
-			glRotatef(vector.length(), vector.x, vector.y, 0);
+			glRotatef(length(vector), vector.x, vector.y, 0);
 			break;
 		case GLUT_MIDDLE_BUTTON:
 			vector *= translateSpeed;
@@ -313,7 +313,7 @@ void doMotion(int x, int y) {
 			break;
 		case GLUT_RIGHT_BUTTON:
 			vector *= scaleSpeed;
-			GLfloat ratio = vector.length() + 1;
+			GLfloat ratio = length(vector) + 1;
 			if (vector.x + vector.y < 0) ratio = 1.0 / ratio;
 			glScalef(ratio, ratio, ratio);
 			break;
