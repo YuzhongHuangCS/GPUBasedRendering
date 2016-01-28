@@ -1,7 +1,7 @@
 /*
 * Shading
 *
-* Ivory and gooch shading demo
+* Shading demo
 *
 * 2016 Yuzo(Huang Yuzhong)
 *
@@ -15,6 +15,7 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include <glm/glm.hpp>
 #include "../common/textfile.hpp"
 #include "../common/shader.hpp"
 
@@ -28,13 +29,13 @@
 #endif
 
 using namespace std;
+using namespace glm;
 
 GLint windowWidth = 800;
 GLint windowHeight = 600;
 GLchar windowTitle[32] = "Shading";
 GLint frameCount = 0;
-GLint nowTime = 0;
-GLint lastTime = 0;
+GLint nextTime = 0, nowTime = 0, lastTime = 0;
 GLfloat lightAmbient[4] = { 0.0, 0.0, 0.0, 1.0 };
 GLfloat lightDiffuse[4] = { 1.0, 1.0, 1.0, 1.0 };
 GLfloat lightSpecular[4] = { 1.0, 1.0, 1.0, 1.0 };
@@ -47,24 +48,28 @@ GLfloat materialShiness = 128;
 GLdouble cameraEye[3] = { 3.0, 4.0, 5.0 };
 GLdouble cameraCenter[3] = { 0.0, 0.0, 0.0 };
 GLdouble cameraUp[3] = { 0.0, 1.0, 0.0 };
-GLfloat rotateSpeed = 0.1;
-GLfloat rotateVector[3] = { -1.0, 1.0, 1.0 };
-GLuint ivoryProgram, goochProgram;
+bool spinEnabled = true;
+GLint spinTime = 0;
+GLfloat spinSpeed = 0.01;
+GLfloat spinVector[3] = { -1.0, 1.0, 1.0 };
+GLuint ivoryProgram, goochProgram, programId = 0;
 GLuint displayList[9];
 GLuint helperList[2];
 int displayIndex = 0;
-int programIndex = 0;
-bool spinning = true;
+int buttonId, clickX, clickY;
+GLfloat rotateSpeed = 0.1, translateSpeed = 0.1, scaleSpeed = 0.01, scrollSpeed = 0.1;
 
-void initIvory();
-void initGooch();
-void initDisplay();
+void buildIvory();
+void buildGooch();
 void compileDisplay();
 void onDisplay();
 void onIdle();
 void onReshape(int width, int height);
 void onKeyboard(unsigned char key, int x, int y);
 void onSpecial(int key, int x, int y);
+void onMouse(int button, int state, int x, int y);
+void onMotion(int x, int y);
+void onMouseWheel(int button, int direction, int x, int y);
 
 int main(int argc, char **argv) {
 	glutInit(&argc, argv);
@@ -83,9 +88,8 @@ int main(int argc, char **argv) {
 	glXSwapIntervalEXT(-1);
 #endif
 
-	initIvory();
-	initGooch();
-	initDisplay();
+	buildIvory();
+	buildGooch();
 	compileDisplay();
 
 	glEnable(GL_DEPTH_TEST);
@@ -107,13 +111,18 @@ int main(int argc, char **argv) {
 	glutReshapeFunc(onReshape);
 	glutKeyboardFunc(onKeyboard);
 	glutSpecialFunc(onSpecial);
+	glutMouseFunc(onMouse);
+	glutMotionFunc(onMotion);
+	glutMouseWheelFunc(onMouseWheel);
+
+	gluLookAt(cameraEye[0], cameraEye[1], cameraEye[2], cameraCenter[0], cameraCenter[1], cameraCenter[2], cameraUp[0], cameraUp[1], cameraUp[2]);
 
 	glutMainLoop();
 
 	return EXIT_SUCCESS;
 }
 
-void initIvory() {
+void buildIvory() {
 	char* ivoryCode[] = { textFileRead("shader/ivory.vert"), textFileRead("shader/ivory.frag") };
 	GLenum ivoryType[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 	ivoryProgram = glBuildProgram(ivoryCode, ivoryType, 2);
@@ -123,7 +132,7 @@ void initIvory() {
 	glCheckError();
 }
 
-void initGooch() {
+void buildGooch() {
 	char* goochCode[] = { textFileRead("shader/gooch.vert"), textFileRead("shader/gooch.frag") };
 	GLenum goochType[] = { GL_VERTEX_SHADER, GL_FRAGMENT_SHADER };
 	goochProgram = glBuildProgram(goochCode, goochType, 2);
@@ -131,11 +140,6 @@ void initGooch() {
 	delete[] goochCode[0];
 	delete[] goochCode[1];
 	glCheckError();
-}
-
-void initDisplay() {
-	glLoadIdentity();
-	gluLookAt(cameraEye[0], cameraEye[1], cameraEye[2], cameraCenter[0], cameraCenter[1], cameraCenter[2], cameraUp[0], cameraUp[1], cameraUp[2]);
 }
 
 void compileDisplay() {
@@ -204,25 +208,31 @@ void compileDisplay() {
 
 void onDisplay() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glPushMatrix();
 
-	if (spinning) glRotatef(rotateSpeed, rotateVector[0], rotateVector[1], rotateVector[2]);
+	nextTime = glutGet(GLUT_ELAPSED_TIME);
+	if (spinEnabled) spinTime += nextTime - nowTime;
+	nowTime = nextTime;
+	glRotatef(spinTime * spinSpeed, spinVector[0], spinVector[1], spinVector[2]);
 
-	glUseProgram(programIndex);
+	glUseProgram(programId);
 	glCallList(displayList[displayIndex]);
-
 	glUseProgram(0);
+
 	glDisable(GL_LIGHTING);
 	glCallList(helperList[0]);
+
 	glPushMatrix();
 	glTranslatef(lightPosition[0], lightPosition[1], lightPosition[2]);
 	glCallList(helperList[1]);
 	glPopMatrix();
+
 	glEnable(GL_LIGHTING);
 
+	glPopMatrix();
 	glutSwapBuffers();
 
 	if (++frameCount >= 60) {
-		nowTime = glutGet(GLUT_ELAPSED_TIME);
 		snprintf(windowTitle, 32, "Shading - FPS: %.2f", frameCount / ((nowTime - lastTime) / 1000.0));
 		glutSetWindowTitle(windowTitle);
 		lastTime = nowTime;
@@ -248,19 +258,19 @@ void onKeyboard(unsigned char key, int x, int y) {
 	} else {
 		switch (key) {
 			case 's':
-				spinning = !spinning;
+				spinEnabled = !spinEnabled;
 				break;
 			case 'r':
-				initDisplay();
+				spinTime = 0;
 				break;
 			case 'i':
-				programIndex = ivoryProgram;
+				programId = ivoryProgram;
 				break;
 			case 'g':
-				programIndex = goochProgram;
+				programId = goochProgram;
 				break;
 			case 'n':
-				programIndex = 0;
+				programId = 0;
 				break;
 		}
 	}
@@ -287,6 +297,56 @@ void onSpecial(int key, int x, int y) {
 			lightPosition[1] -= 0.1;
 			break;
 	}
-
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+}
+
+void doMotion(int x, int y) {
+	vec2 vector(x - clickX, y - clickY);
+	switch (buttonId) {
+		case GLUT_LEFT_BUTTON:
+			vector *= rotateSpeed;
+			glRotatef(vector.length(), vector.x, vector.y, 0);
+			break;
+		case GLUT_MIDDLE_BUTTON:
+			vector *= translateSpeed;
+			glTranslatef(vector.x, vector.y, 0);
+			break;
+		case GLUT_RIGHT_BUTTON:
+			vector *= scaleSpeed;
+			GLfloat ratio = vector.length() + 1;
+			if (vector.x + vector.y < 0) ratio = 1.0 / ratio;
+			glScalef(ratio, ratio, ratio);
+			break;
+	}
+}
+
+void onMouse(int button, int state, int x, int y) {
+	switch (state) {
+		case GLUT_DOWN:
+			buttonId = button;
+			clickX = x;
+			clickY = y;
+			glPushMatrix();
+			break;
+		case GLUT_UP:
+			glPopMatrix();
+			doMotion(x, y);
+			break;
+	}
+}
+
+void onMotion(int x, int y) {
+	glPopMatrix();
+	glPushMatrix();
+	doMotion(x, y);
+}
+
+void onMouseWheel(int button, int direction, int x, int y) {
+	if (direction > 0) {
+		GLfloat ratio = 1 + scrollSpeed;
+		glScalef(ratio, ratio, ratio);
+	} else {
+		GLfloat ratio = 1 - scrollSpeed;
+		glScalef(ratio, ratio, ratio);
+	}
 }
